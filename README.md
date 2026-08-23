@@ -1,741 +1,765 @@
-POWERS — GitHub README
-
 ⚡ POWERS
 
-Intelligent superpower, progression and psychological continuity for AI Dungeon
+Intelligent superpower continuity, progression, technique memory and power-aware character psychology for AI Dungeon.
 
-POWERS is an AI Dungeon scripting system designed to solve one of the biggest problems in long-form powered stories:
+POWERS is built for one problem: long AI Dungeon stories gradually forget what powers actually mean.
 
-the AI eventually forgets what abilities mean.
+A character begins with Fire Manipulation, and fifty actions later the model casually gives them Fire Generation, immunity to fire and the ability to become living flame. A room-scale time stop becomes planetary. A nullification field gets mistaken for permanent depowering. A player attempts a new ability and the attempt itself becomes canon. A character’s fear of losing control disappears as soon as the scene leaves the context window.
 
-Characters gain powers they never had.
+POWERS gives the story a persistent, evidence-based continuity layer for those details without forcing the adventure into an RPG stat sheet.
 
-Limitations disappear.
+────────
 
-Resistance becomes immunity.
+✨ What makes POWERS different?
 
-An ability shown at room scale suddenly affects a planet.
+POWERS does not treat powers as a flat list of names.
 
-Temporary suppression becomes permanent power loss.
+It separates:
 
-A character’s fear of their own abilities disappears because the conversation moved outside the context window.
+• ownership — does the character actually possess the ability?
+• evidence — was it claimed, attempted, demonstrated or explicitly established?
+• mechanic — manipulation, generation, transformation, absorption, resistance, etc.
+• availability — is it usable right now, dormant, suppressed, restricted or lost?
+• access — innate, trained, copied, borrowed, granted, stolen or artifact-dependent?
+• scale — what range, duration, area, target count or magnitude has actually been shown?
+• limits and costs — what stops it, drains it or makes it dangerous?
+• applications — what has the character learned to do with it?
+• techniques — which named moves have become part of the character’s repertoire?
+• reliability and precision — is it stable, inconsistent, coarse or finely controlled?
+• resources — does it consume mana, stamina, blood, charge, fuel or something stranger?
+• forms — which abilities belong to which transformation?
+• interactions — what has countered, resisted, bypassed or combined with it?
+• psychology — what does the character believe, fear, plan or feel about their powers?
 
-POWERS maintains a persistent, bounded model of both power continuity and power-related character psychology.
+Those layers are deliberately kept separate so one type of information cannot silently become another.
 
-It is designed to support practically any scenario containing supernatural or extraordinary abilities without forcing that scenario into a predefined universe or RPG ruleset.
-
-⸻
-
-✨ Core Philosophy
-
-POWERS separates several ideas that language models commonly blur together:
-
-Claim ≠ Fact
-Attempt ≠ Success
-Failure ≠ Never Had The Power
-Observed Scale ≠ Absolute Maximum
-Resistance ≠ Immunity
-Manipulation ≠ Generation
-Suppression ≠ Permanent Loss
-Belief ≠ Objective Reality
-Plan ≠ Accomplishment
-Emotion ≠ Power Mechanic
-
-The story remains the authority.
-
-POWERS exists to remember the evidence.
-
-⸻
+────────
 
 🧬 Power Genome
 
-A fixed database can never contain every possible superpower.
+There are too many possible powers to maintain as one literal database.
 
-POWERS therefore combines a curated catalogue with a compositional Power Genome.
+POWERS therefore combines a large curated Extended Power Atlas with a compositional Power Genome.
 
-Abilities may be interpreted using:
+A power can be interpreted through:
 
+```text
 Domain
-Mechanic
-Source
-Access
-Tier
-Activation
-Traits
-Applications
-Scale
-Evidence
-Relationships
++ Mechanic
++ Source
++ Access
++ Tier
++ Activation
++ Traits
++ Applications
++ Scale
++ Evidence
++ Relationships
+```
+
+That means familiar powers work immediately, but so do obscure or original abilities.
 
 Examples:
 
+```text
 Fire Manipulation
-domain: fire
-mechanic: manipulation
 Absolute Spatial Negation
-domain: space
-mechanic: negation
-tier label: absolute
+Dream Embodiment
+Dragon Physiology
+Chronokinesis
 Lie-to-Glass Transmutation
-domain: contextual/original
-mechanic: transmutation
+Blood-Fueled Shadow Transportation
+```
 
-The original power name remains canonical.
+The exact power name remains canon. POWERS uses the semantic structure only to reason about continuity.
 
-Power Genome semantics help POWERS reason about the ability; they do not rewrite the user’s power system.
+Extended Power Atlas
 
-⸻
+The Library now includes hundreds of additional canonical families spanning:
 
-🔤 Original Power Recognition
+• physical enhancement and adaptation
+• material manipulation and generation
+• psychic and perception powers
+• fundamental physics and conceptual powers
+• energy systems
+• mystic disciplines
+• meta-power abilities
+• technological abilities
+• biological powers
+• utility, portal and storage abilities
 
-POWERS can interpret common supernatural naming structures including:
+The atlas is deliberately paired with ontology detection rather than trying to hard-code every possible superpower title ever invented.
 
+Power-name grammar
+
+POWERS also understands common structures such as:
+
+```text
+X Manipulation
+X Generation
+X Creation
+X Physiology
+X Embodiment
+X Absorption
+X Resistance
+X Immunity
+X Negation
+X Sealing
+X Summoning
+X Detection
+X Transformation
+```
+
+and many genre-style endings including:
+
+```text
 -kinesis
 -mancy
 -pathy
 -portation
 -morphism
+```
 
-It also recognizes broad mechanic families such as:
+A large root-alias table gives unfamiliar names more useful semantics. A new -kinesis ability does not need to be manually added to the source before the engine can reason about it.
 
-Manipulation
-Generation
-Creation
-Absorption
-Negation
-Sealing
-Resistance
-Immunity
-Mimicry
-Physiology
-Transformation
-Empowerment
-Summoning
-Projection
-Detection
-Communication
-Transmutation
-Restoration
-Infusion
-Evolution
-Transportation
-Intangibility
-Storage
-Fusion
-Replication
-Bestowal
+────────
 
-Inflection-aware matching allows natural prose such as:
+🔬 Evidence before assumption
 
-generate
-generates
-generated
-control
-controls
-controlled
-create
-creates
-created
+POWERS treats the story as evidence rather than assuming every power-shaped sentence is true.
 
-to resolve toward the same underlying mechanic.
+```text
+"Mara claims she can stop time."
+```
 
-⸻
+That is a claim.
 
-🔬 Evidence Model
-
-POWERS does not treat every power-shaped sentence as canon.
-
-Example:
-
-Mara claims she can stop time.
-
-This creates weak evidence.
-
-> You try to stop time.
-
-This creates an attempted action.
-
-The entire room freezes around Mara for three seconds.
-
-This provides actual feat evidence.
-
-Confidence can develop through:
-
-rumored
-probable
-confirmed
-
-A failed use of an already established power does not automatically reduce its existence to zero.
-
-⸻
-
-🎯 Attempt → Outcome Matching
-
-Player input and model output are handled separately.
-
-POWERS remembers attempted powers temporarily and then evaluates the resulting narration.
-
-This prevents:
-
+```text
 > You try to phase through the wall.
+```
 
-from immediately establishing Intangibility.
+That is an attempt.
 
-Outcome matching also tries to remain subject-aware so another character successfully using a different ability does not accidentally confirm the player’s pending attempt.
+```text
+Your body turns translucent and passes through the steel.
+```
 
-⸻
+That is a demonstrated outcome.
 
-👥 Subject-Aware Detection
+Confidence can progress through:
 
-Powered scenes often contain multiple characters.
+```text
+rumored → probable → confirmed
+```
 
-POWERS attempts to route abilities to the entity actually associated with each clause.
+A failed use also does not erase an established power. It may indicate exhaustion, resistance, suppression, poor control or circumstance instead.
 
-For example:
+────────
 
+👥 Subject-aware attribution
+
+Powered scenes often contain several characters in one paragraph.
+
+POWERS contains an attribution layer designed to avoid attaching every detected ability to the first proper name it sees.
+
+```text
 Mara can fly while Kade can teleport.
+```
 
-should produce:
+becomes:
 
+```text
 Mara → Flight
 Kade → Teleportation
+```
 
-rather than attaching both abilities to Mara.
+It also understands reported information:
 
-Possessive forms such as:
+```text
+Kade says Mara can teleport.
+```
 
-Mara's flight
-Mara’s telepathy
+This can seed a claim about Mara without giving Teleportation to Kade.
 
-are normalized back to the correct entity.
+Mixed positive/negative clauses are separated too:
 
-⸻
+```text
+Rhea can manipulate glass, but she cannot generate it.
+```
 
-📏 Feats & Observed Scale
+can establish Glass Manipulation without manufacturing Glass Generation.
 
-POWERS can retain demonstrated:
+────────
 
-* range
-* duration
-* area
-* target count
-* magnitude
+🧩 Strict mechanics
 
-Example:
-
-Mara freezes time throughout the room for three seconds.
-
-may establish:
-
-Time ability
-duration: 3 seconds
-scope: room
-
-Observed feats are not automatically treated as hard maximums.
-
-They represent the strongest or clearest demonstrated evidence available so far.
-
-This allows progression without unexplained power inflation.
-
-⸻
-
-⚠️ Costs & Limitations
-
-POWERS can track limitations such as:
-
-touch requirement
-line of sight
-range
-duration
-cooldown
-concentration
-specific form
-environment
-activation condition
-resource requirement
-
-and costs such as:
-
-fatigue
-pain
-injury
-migraine
-bleeding
-overheating
-stamina
-lifespan
-resource expenditure
-
-Recent aftermath can also remain relevant to immediate scenes.
-
-⸻
-
-🧩 Strict Mechanics
-
-With strict mechanics enabled, related abilities remain separate unless the story links them.
+With strictMechanics=true, POWERS actively reminds the model that related mechanics are not interchangeable.
 
 Examples:
 
-Fire Manipulation ≠ Fire Generation
+```text
+Manipulation ≠ Generation
 Resistance ≠ Immunity
+Immunity ≠ Absorption
+Absorption ≠ Permanent Ownership
 Teleportation ≠ Portal Creation
 Time Manipulation ≠ Time Stop
 Time Stop ≠ Time Travel
-Animal Control ≠ Animal Communication
-Absorption ≠ permanent ownership
-Mimicry ≠ Physiology
+Telepathy ≠ Mind Control
+Empathy ≠ Emotion Manipulation
+Illusion ≠ Reality Alteration
+Regeneration ≠ Resurrection
+Flight ≠ Gravity Manipulation
+Named Technique ≠ New Power
+```
 
-This dramatically reduces silent capability creep.
+The Library also contains a broader strict-boundary table for common inference mistakes.
 
-⸻
+These are not universe rules. Explicit scenario canon can establish any connection it wants. POWERS simply refuses to invent that connection by accident.
 
-👑 High-Tier Guard
+────────
 
-Names containing labels such as:
+👑 High-tier guard
 
+Names containing words such as:
+
+```text
 Absolute
 Omni
 Almighty
 Infinite
 Supreme
-Transcendent
 Primordial
+Transcendent
+```
 
-do not automatically mean:
+are treated as labels until the story establishes what they actually mean.
 
-* infinite range;
-* perfect control;
-* every possible sub-power;
-* total immunity;
-* omnipotence.
+An impressive title does not automatically grant infinite range, perfect control, every related sub-power and universal immunity.
 
-The story still has to establish what the title means.
+────────
 
-⸻
+📏 Feats and observed scale
 
-🌀 Access Model
+POWERS can retain demonstrated:
 
-Power existence and current usability are separate.
+• duration
+• range
+• area/scope
+• target count
+• magnitude
+
+Example:
+
+```text
+Mara freezes time throughout one room for three seconds.
+```
+
+can leave continuity roughly equivalent to:
+
+```text
+Time Stop [confirmed]
+observed duration: 3 seconds
+observed scope: room
+```
+
+Observed scale is not automatically a hard maximum.
+
+It means “this is what has actually been shown so far.”
+
+Characters can grow. The story just has to establish the growth instead of silently jumping from room-scale to planet-scale because older context disappeared.
+
+────────
+
+⚠️ Limits, costs and conditions
+
+POWERS can retain restrictions such as:
+
+• touch requirement
+• line of sight
+• range
+• duration
+• cooldown
+• recharge
+• concentration
+• environmental requirement
+• transformation requirement
+• resource requirement
+
+and costs such as:
+
+• exhaustion
+• pain
+• injury
+• migraines
+• bleeding
+• overheating
+• stamina drain
+• lifespan cost
+• mana/energy expenditure
+
+Typed constraints make those notes more useful than one undifferentiated bag of strings.
+
+────────
+
+🌀 Access and availability
+
+Having a power and being able to use it right now are different questions.
 
 POWERS can distinguish access such as:
 
-innate
-learned
-granted
-inherited
-copied
-stolen
-borrowed
-artifact-dependent
+```text
+innate / inherited
+learned / trained
+artifact / device-bound
+temporary / borrowed
+copied / mimicked
+granted / bestowed
+stolen / drained
+```
 
 and availability such as:
 
+```text
 available
 dormant
-awakened
 restricted
 suppressed
 lost
 unknown
+```
 
 Examples:
 
-A nullification collar may suppress Teleportation without deleting Teleportation from canon.
+• a nullification collar can suppress Teleportation without deleting Teleportation from canon;
+• a dormant ability can awaken later without being treated as a brand-new origin;
+• a ring that amplifies Flight is not automatically considered the source of Flight;
+• copied abilities can remain temporary unless the story establishes permanent ownership.
 
-A transformation may grant temporary abilities.
+────────
 
-A broken artifact may remove only powers actually dependent on that artifact.
+🎯 Applications and named techniques
 
-⸻
+POWERS remembers how abilities are actually used.
 
-🔄 Progression
+Applications can include:
 
-POWERS can retain evidence for:
+• offense
+• defense
+• mobility
+• control
+• sensing
+• healing
+• constructs
+• stealth
+• utility
+• support
+• summoning
+• transformation
+• creation
+• destruction
+• sealing
+• environmental use
 
-* training;
-* improved mastery;
-* loss of control;
-* regression;
-* awakening;
-* evolution;
-* derived abilities;
-* fused abilities;
-* inherited powers;
-* copied powers;
-* restored abilities.
+The expanded engine also tracks explicitly named techniques.
 
-Progression remains narrative rather than numerical unless another script chooses to build statistics on top of the API.
+```text
+Rhea uses Glass Manipulation in a technique called "Mirror Lance."
+```
 
-⸻
+Mirror Lance can become part of Rhea’s established repertoire without becoming an unrelated new superpower.
 
-🎯 Applications
+────────
 
-Powers may develop demonstrated applications such as:
+🎛️ Reliability, precision and control
 
-offense
-defense
-mobility
-control
-sensing
-healing
-constructs
-stealth
-utility
-support
-summoning
-transformation
-creation
-destruction
-sealing
-environmental use
+Two characters can possess the same power while using it very differently.
 
-Applications are useful for remembering creative techniques without incorrectly creating a completely separate superpower for every maneuver.
+POWERS can now remember explicit evidence that an ability is:
 
-⸻
+```text
+reliable
+unreliable / unstable
+automatic / reflexive
+precise / fine
+coarse / imprecise
+```
 
-🛡️ Defenses
+It can also retain explicit control/collateral evidence.
 
-POWERS keeps defensive relationships distinct.
+```text
+The blast repeatedly damages the surroundings.
+```
 
-It can represent:
+is different continuity from:
 
-Resistance
-Immunity
-Vulnerability
-Weakness
-Counter
-Suppression
-Bypass
-Negation
+```text
+She contains the blast without harming anyone nearby.
+```
 
-A character manipulating fire therefore does not automatically become immune to fire.
+This gives the AI more useful character-specific power behavior without introducing numerical accuracy stats.
 
-⸻
+────────
 
-⚗️ Sources & Origins
+🔋 Resources and recharge
 
-Power sources may include:
+Abilities can depend on resources independently of their origin.
 
-mutation
-magic
-technology
-artifact
-divine
-infernal
-alien
-cosmic
-psychic
-biological
-martial
-chemical
-elemental
-dimensional
-temporal
-quantum
-emotional
-dream
-soul
-bloodline
-infection
+POWERS can track explicit use of:
 
-Original sources are also supported.
+• mana
+• stamina
+• energy
+• charge
+• blood
+• life force
+• chi / ki / chakra
+• fuel
+• ammunition
+• batteries / power cells
+• custom resources
 
-Source information is stored separately from the ability itself.
+A cost is not automatically an origin.
 
-Using an artifact to enhance a power therefore does not automatically mean the artifact originally granted that power.
+A character consuming mana to activate a device does not prove the ability itself is magical unless the story establishes that relationship.
 
-⸻
+────────
+
+✨ Power signatures
+
+Explicit sensory tells can be remembered separately from mechanics.
+
+Examples might include:
+
+• a geometric glow
+• a distinctive aura
+• a sound
+• a smell
+• a visible distortion
+
+A blue glow is continuity about presentation. It does not automatically become Light Manipulation or Energy Projection.
+
+────────
+
+🥋 Training, discovery and progression
+
+Training intent and actual progression are deliberately separate.
+
+POWERS can retain:
+
+• training sessions
+• practice
+• breakthroughs
+• improved control
+• regression
+• mastery evidence
+• newly discovered applications
+• discovered limits
+• discovered weaknesses
+
+```text
+Mara plans to master Telekinesis.
+```
+
+is not mastery.
+
+```text
+After weeks of practice, Mara can now hold dozens of moving objects with fine control.
+```
+
+is actual progression evidence.
+
+────────
+
+🔗 Power synergies
+
+Explicit combinations between abilities can be remembered.
+
+```text
+Mara combines Telekinesis with Force Fields to trap the drone.
+```
+
+can become an established synergy/application.
+
+That does not automatically mean the powers permanently fused into a third ability.
+
+────────
+
+🛡️ Defenses, weaknesses and counters
+
+POWERS keeps these ideas distinct:
+
+• immunity
+• resistance
+• vulnerability
+• weakness
+• counter
+• suppression
+• bypass
+• negation
+
+A character controlling fire does not automatically become immune to fire.
+
+One counter succeeding once also does not automatically establish absolute superiority in every future context.
+
+────────
+
+🧬 Forms and transformations
+
+POWERS can track:
+
+• current transformation
+• reversion
+• form-only powers
+• temporary transformed abilities
+• form-specific limits
+
+This is useful for magical forms, monsters, powered armor, transformation sequences, shapeshifters and multi-form characters.
+
+────────
 
 🧠 Inner Current
 
-Inner Current is POWERS’ psychological-continuity subsystem.
+POWERS includes Inner Current, a private character-continuity system designed specifically to work beside power mechanics.
 
-It is not a full independent NPC simulator.
+It can retain story-supported:
 
-Instead it records story-supported internal continuity relevant to characters and their powers.
+• goals
+• plans
+• fears
+• beliefs
+• secrets
+• emotions
+• vows and restraints
+• self-image
+• internal conflict
+• confidence
+• temptation
+• pride
+• shame
+• resentment
+• dependence on powers
+• fear of losing control
 
-Possible information includes:
+Inner Current is deliberately not a separate autonomous NPC agent.
 
-goals
-plans
-fears
-beliefs
-secrets
-emotions
-vows
-restraint
-self-image
-internal conflict
-power attitude
-temptation
-confidence
-dependence
-shame
-pride
-fear of losing control
+It records supported psychological continuity and keeps it epistemically separate from objective mechanics.
 
-⸻
+────────
 
-🔐 Subjective Truth vs Objective Truth
+🔐 Belief is not fact
 
-Inner Current deliberately separates character belief from world fact.
-
-Example:
-
+```text
 Mara believes the relic created her powers.
+```
 
-may produce:
+can establish:
 
-Mara belief:
-"The relic created my powers."
+```text
+Mara believes the relic is her power source.
+```
 
-It does not automatically rewrite:
+It does not automatically establish:
 
-Power origin = relic
+```text
+The relic objectively created Mara's powers.
+```
 
 Likewise:
 
-Mara fears she will become a monster.
+```text
+Mara fears she is becoming a monster.
+```
 
-does not establish:
+is not proof that she literally is becoming one.
 
-Mara is becoming a monster.
+Plans are not accomplishments. Fears are not mechanical weaknesses. Secrets are not automatically public knowledge.
 
-⸻
+────────
 
-❤️‍🔥 Emotion → Power Rules
+❤️‍🔥 Emotion-to-power mechanics
 
-Ordinary emotional coincidence is not treated as a mechanic.
+Emotional coincidence is not enough.
 
+```text
 Mara is angry while using Telekinesis.
+```
 
-does not prove:
+is only mood + power use.
 
-Anger empowers Telekinesis.
-
-But:
-
+```text
 Mara's Telekinesis becomes stronger whenever she gets angry.
+```
 
-can establish an actual emotion-power relationship.
+can establish a genuine emotion-to-power rule.
 
-This distinction prevents normal character writing from becoming accidental power mechanics.
+This prevents ordinary character writing from accidentally rewriting power mechanics.
 
-⸻
+────────
 
-🔄 Psychological Revision
+🔄 Characters can change
 
-Inner Current is designed for changing characters.
+Inner Current supports revision.
 
-It can resolve or replace:
+Characters can:
 
-abandoned plans
-changed beliefs
-overcome fears
-revealed secrets
-broken vows
-ended emotional states
-resolved conflicts
-changing power attitudes
+• abandon plans
+• change beliefs
+• overcome fears
+• reveal secrets
+• break or replace vows
+• resolve conflicts
+• change how they feel about their abilities
 
-The goal is character development rather than permanent accumulation of every thought ever detected.
+Old psychology does not have to remain eternally true just because it was once recorded.
 
-⸻
+────────
 
-🛡️ Player Agency Protection
+🛡️ Player agency protection
 
-POWERS avoids automatically persisting model-generated private psychology for human-controlled characters.
+With protectPlayerAgency=true, model-generated narration is not allowed to quietly persist private goals, plans, beliefs, secrets or intentions for human-controlled characters.
 
-This protects the player’s:
+Player-authored material and deliberate author canon remain eligible.
 
-beliefs
-goals
-plans
-secrets
-desires
-private intentions
+When AI Dungeon supplies multiplayer character names through script runtime information, those human-controlled named characters receive the same protection.
 
-from quietly becoming permanent script canon because the model narrated them once.
+────────
 
-Where available, multiplayer human character names may receive the same protection.
+⏪ Undo, Edit and retry resilience
 
-⸻
+POWERS uses action-aware provenance when AI Dungeon exposes an action count.
 
-🗂️ Story Card Integration
+This allows the engine to clean up discarded timeline branches after Undo/Edit rather than leaving behind ghost continuity.
 
-POWERS can read authored character information from suitable Story Cards.
+Rollback-aware data includes:
 
-Compact power declarations are supported:
+• power evidence
+• feats
+• availability
+• forms
+• constraints
+• psyche records
+• techniques
+• resources
+• signatures
+• training
+• reliability/precision
+• collateral evidence
+• synergies
+• generated memory
 
-Powers: Flight, Telepathy, Super Strength
+Author-level Story Card canon is kept separate so Undo does not erase scenario setup.
 
-Authored cards may also establish limitations, costs and other power lore.
+Repeated processing of the same action is also fingerprinted to avoid duplicate evidence inflation.
 
-Generated long-term cards can maintain compact continuity under dedicated keys such as:
+────────
 
-powers::CharacterName
+🗂️ Story Card integration
 
-Private psychological continuity can use separate psyche cards.
+Authored Character/NPC/Creature/Powers Canon cards can seed power information.
 
-Generated cards are treated differently from authored canon to avoid feedback loops.
+A compact declaration works well:
 
-⸻
+```text
+Powers: Flight, Telepathy, Super Strength.
+```
 
-✏️ Author Canon Provenance
+POWERS can also maintain generated long-term cards under dedicated keys such as:
 
-POWERS tracks where authored Story Card evidence came from.
+```text
+powers::Mara
+```
 
-This allows scenario creators to edit character canon later.
+Inner Current uses separate generated Powers Psyche cards so subjective information is not mixed into hard mechanical canon.
 
-Example:
+Author-canon reconciliation
 
-Original card:
+Authored Story Card evidence has provenance.
 
+If a card changes from:
+
+```text
 Powers: Flight
+```
 
-Edited card:
+to:
 
+```text
 Powers: Telepathy
+```
 
-The old card-derived Flight evidence can be retracted.
+POWERS can retract the old card-derived Flight evidence.
 
-However, if Flight was independently demonstrated in narration, that separate evidence can survive.
+If Flight was independently demonstrated in narration, that separate evidence can survive.
 
-This prevents Story Card edits from either leaving permanent stale canon or destroying unrelated story continuity.
+Deleting or retyping a card can likewise retract only the facts that came from that authored source.
 
-⸻
+Generated cards are disposable caches and are not recursively re-seeded as new canon.
 
-⏪ Timeline Awareness
+────────
 
-Long AI Dungeon adventures commonly use Retry, Edit and Undo.
+🧠 Bounded live context
 
-POWERS uses action-aware processing and provenance information to reduce duplicate evidence and avoid carrying discarded-branch continuity forward where possible.
+POWERS does not dump the entire database into every model call.
 
-Timeline-sensitive information can include:
+It relevance-ranks characters and powers for the current scene and builds a compact ledger.
 
-feats
-power discoveries
-availability changes
-forms
-psychological developments
-limits
-costs
-generated memory
+A ledger may look roughly like:
 
-⸻
-
-🧠 Context Budgeting
-
-POWERS does not inject the entire state database into every generation.
-
-It relevance-ranks entities and powers according to the current scene and produces a compact continuity ledger.
-
-Example:
-
+```text
 [POWERS — continuity ledger]
-Mara
-- Time Manipulation [confirmed]
-  demonstrated: room, 3 seconds
-  cost: severe migraine
-Kade
-- Teleportation [confirmed]
-  availability: suppressed
+
+Mara:
+- Time Stop [confirmed]
+  observed: room / 3 seconds
+  costs: severe migraine
+  reliability: unstable
+  technique: Frozen Heartbeat
+
+Kade:
+- Teleportation [confirmed, suppressed]
   reason: nullification collar
-INNER CURRENT
-Mara
-- fears losing control of Time Manipulation
-- intends to avoid using it around civilians
 
-When available, POWERS can account for AI Dungeon context-budget information rather than blindly appending beyond the available limit.
+INNER CURRENT — Mara:
+- fears losing control around civilians
+- believes the power is becoming harder to contain
+```
 
-⸻
+When AI Dungeon supplies info.maxChars and info.memoryLength, adaptive context handling uses those values to avoid blindly appending a ledger past the available model-context character ceiling.
 
-💾 Persistent State
+────────
 
-POWERS keeps its persistent data under:
+⚙️ Configuration
 
-state.powers
+Create a Story Card:
 
-It avoids claiming unrelated memory namespaces.
+```text
+Name: Powers Config
+Type: Powers Config
+Triggers / Keys: Powers Config
+```
 
-Older POWERS state can be migrated forward when new fields are introduced.
+Paste:
 
-⸻
+```text
+POWERS_CONFIG_CARD.txt
+```
 
-🔌 Public API
+into the Entry field.
 
-Other AI Dungeon scripts can interact with the same continuity engine through:
+Paste:
 
-POWERS.api
+```text
+POWERS_CONFIG_NOTES.txt
+```
 
-Check whether a power exists
+into the Notes field.
 
-POWERS.api.hasPower(
-  "Kade",
-  "Teleportation",
-  "confirmed"
-);
+The supplied Entry is intentionally under 2,000 characters. The Notes file explains every option, range and interaction in detail.
 
-Record a power
+See POWERS_CONFIG_CARD_SETUP.md for the exact layout.
 
-POWERS.api.recordPower(
-  "Kade",
-  "Teleportation",
-  {
-    evidence: "Established during character creation.",
-    source: "character-system"
-  }
-);
-
-Record a feat
-
-POWERS.api.recordFeat(
-  "Kade",
-  "Teleportation",
-  "Kade teleports across the chamber.",
-  "success"
-);
-
-Change availability
-
-POWERS.api.setAvailability(
-  "Kade",
-  "Teleportation",
-  "suppressed",
-  "Nullification collar active."
-);
-
-Read semantics
-
-POWERS.api.getSemantics(
-  "Mara",
-  "Absolute Spatial Negation"
-);
-
-Record an application
-
-POWERS.api.recordApplication(
-  "Mara",
-  "Barrier Manipulation",
-  "defense",
-  "Mara curves the barrier around the team."
-);
-
-Resolve private continuity
-
-POWERS.api.resolvePsyche(
-  "Mara",
-  "fear",
-  "Mara no longer fears losing control."
-);
-
-Obtain a safe snapshot
-
-var mara = POWERS.api.snapshot("Mara");
-
-The snapshot is isolated so another script cannot accidentally mutate internal POWERS state simply by editing the returned object.
-
-⸻
+────────
 
 🎭 Modes
 
@@ -743,154 +767,371 @@ Narrative
 
 Recommended default.
 
-Power continuity remains strong while mechanical instructions stay subtle.
+Strong continuity, minimal visible mechanics, natural storytelling first.
 
 Balanced
 
-Power interactions, applications, costs and limitations receive stronger emphasis.
+Costs, counters, limits, applications and current availability receive more emphasis.
 
 Simulation
 
-Strictest interpretation of established ability rules.
+Strictest treatment of established rules and restrictions.
 
-POWERS itself does not add dice rolls, levels or combat statistics.
+POWERS still does not add dice or numerical combat stats by itself.
 
-⸻
+────────
 
-🌍 Scenario Compatibility
+🌍 Scenario compatibility
 
-POWERS can support:
+POWERS can be used in:
 
-* superhero fiction;
-* fantasy;
-* urban fantasy;
-* sci-fi;
-* cyberpunk;
-* supernatural horror;
-* cultivation;
-* anime-inspired worlds;
-* magical girls;
-* mythology;
-* cosmic fiction;
-* mutations;
-* psychic powers;
-* divine/infernal abilities;
-* artifacts;
-* magical schools;
-* military experiments;
-* original settings;
-* crossover scenarios.
+• superhero fiction
+• fantasy
+• urban fantasy
+• sci-fi
+• cyberpunk
+• supernatural horror
+• cultivation
+• anime-inspired settings
+• magical-girl stories
+• mythology
+• cosmic fiction
+• psychic stories
+• mutation stories
+• divine/infernal settings
+• artifact-heavy worlds
+• superpowered schools
+• military experiments
+• crossover settings
+• completely original power systems
 
-There is no required setting ontology.
+The scenario defines what is possible.
 
-⸻
+POWERS remembers what has actually become true.
+
+────────
 
 🛠️ Installation
 
-AI Dungeon custom scripts use four main script areas.
+AI Dungeon scenarios expose four script areas.
 
 Copy:
 
+```text
 1-Library.js → Library
 2-Input.js   → Input
 3-Context.js → Context
 4-Output.js  → Output
+```
 
 Save the scripts.
 
-POWERS can work using its defaults immediately.
+POWERS works with defaults immediately; the Config Story Card is optional.
 
-⸻
+The three hook files are deliberately small and fail-safe. If POWERS encounters an unexpected exception, they return the original text rather than intentionally breaking the adventure.
 
-⚙️ Configuration
+────────
 
-For custom behavior, create a Story Card using the supplied configuration entry.
+💾 Persistent state
 
-Recommended setup:
+POWERS stores its persistent state under:
 
-Keys / Triggers:
-Powers Config
-Type:
-Powers Config
-Entry:
-Paste POWERS_CONFIG_CARD.txt
+```js
+state.powers
+```
 
-The compact config is designed to remain beneath AI Dungeon’s Story Card entry-size constraint.
+It does not take ownership of unrelated memory namespaces.
 
-Full explanations belong in:
+Older POWERS state shapes are repaired/migrated forward when possible.
 
-POWERS_CONFIG_NOTES.txt
+────────
 
-rather than bloating the active configuration card.
+🔌 Public API
 
-⸻
+Other AI Dungeon scripts can use POWERS as a shared source of supernatural continuity.
 
-🤝 Combining POWERS With Other Scripts
+Check a power
 
-POWERS is intentionally designed to function as a shared supernatural continuity layer.
+```js
+POWERS.api.hasPower("Kade", "Teleportation", "confirmed");
+```
 
-Other systems can build on top of it:
+Record a power
 
-relationship engines
-NPC systems
-combat frameworks
-inventory systems
-transformation systems
-faction scripts
-twist engines
-RPG systems
-character development systems
+```js
+POWERS.api.recordPower("Kade", "Teleportation", {
+  evidence: "Established by character creation.",
+  source: "character-system"
+});
+```
 
-Instead of every script independently deciding whether Mara can teleport, they can query POWERS.
+Record a feat
 
-That reduces contradictory state across large script suites.
+```js
+POWERS.api.recordFeat(
+  "Kade",
+  "Teleportation",
+  "Kade teleports across the chamber.",
+  "success"
+);
+```
 
-⸻
+Add a constraint
 
-⚡ Why POWERS Exists
+```js
+POWERS.api.addConstraint(
+  "Kade",
+  "Teleportation",
+  "limit",
+  "Cannot teleport through lead shielding."
+);
+```
+
+Change availability
+
+```js
+POWERS.api.setAvailability(
+  "Kade",
+  "Teleportation",
+  "suppressed",
+  "Nullification field active."
+);
+```
+
+Assess current usability
+
+```js
+var result = POWERS.api.assessPower("Kade", "Teleportation");
+```
+
+This separates “known power” from “usable right now.”
+
+Read Power Genome semantics
+
+```js
+POWERS.api.getSemantics("Mara", "Absolute Spatial Negation");
+```
+
+Record an application
+
+```js
+POWERS.api.recordApplication(
+  "Mara",
+  "Barrier Manipulation",
+  "defense",
+  "Mara curves the barrier around the team."
+);
+```
+
+Record a named technique
+
+```js
+POWERS.api.recordTechnique(
+  "Mara",
+  "Barrier Manipulation",
+  "Glass Cathedral",
+  "A layered dome technique."
+);
+```
+
+Set reliability
+
+```js
+POWERS.api.setReliability(
+  "Mara",
+  "Barrier Manipulation",
+  "reliable",
+  "Repeatedly demonstrated under pressure."
+);
+```
+
+Set precision
+
+```js
+POWERS.api.setPrecision(
+  "Mara",
+  "Barrier Manipulation",
+  "precise/fine",
+  "Can form millimeter-thin partitions."
+);
+```
+
+Add a resource rule
+
+```js
+POWERS.api.addResourceRule(
+  "Mara",
+  "Barrier Manipulation",
+  "Consumes stored crystal charge.",
+  "resource"
+);
+```
+
+Set access mode
+
+```js
+POWERS.api.setAccessMode(
+  "Mara",
+  "Barrier Manipulation",
+  "learned/trained",
+  "Developed through formal training."
+);
+```
+
+Record an interaction
+
+```js
+POWERS.api.recordInteraction(
+  "Mara's barrier cancels Kade's shockwave.",
+  ["Barrier Manipulation", "Shockwave Generation"]
+);
+```
+
+Record psyche continuity
+
+```js
+POWERS.api.recordPsyche(
+  "Mara",
+  "fear",
+  "Mara fears losing control around civilians."
+);
+```
+
+Resolve psyche continuity
+
+```js
+POWERS.api.resolvePsyche(
+  "Mara",
+  "fear",
+  "Mara no longer fears losing control."
+);
+```
+
+Safe snapshot
+
+```js
+var mara = POWERS.api.snapshot("Mara");
+```
+
+The snapshot is deep-copied so another script cannot accidentally mutate POWERS state through the returned object.
+
+Continuity audit
+
+```js
+POWERS.api.audit("Mara");
+```
+
+Global diagnostics
+
+```js
+POWERS.api.diagnostics();
+```
+
+This returns high-level counts, stats and potential continuity warnings for development/debugging.
+
+────────
+
+🤝 Combining POWERS with other scripts
+
+POWERS is intentionally useful as a shared continuity authority for:
+
+• relationship engines
+• NPC systems
+• combat frameworks
+• inventories
+• transformation systems
+• faction systems
+• twist engines
+• RPG frameworks
+• character progression systems
+
+Instead of five scripts separately guessing whether Mara can teleport, they can query the same source of truth.
+
+────────
+
+✅ Validation
+
+The package contains regression suites covering:
+
+• claims vs facts
+• attempts vs outcomes
+• failed uses
+• custom powers
+• Power Genome parsing
+• unusual suffix powers
+• strict mechanic separation
+• subject attribution
+• reported claims
+• hypotheticals and denials
+• retry de-duplication
+• scale tracking
+• typed limits/costs
+• forms
+• access modes
+• dormancy/awakening
+• suppression/restoration
+• defenses/vulnerabilities
+• Story Card seeding
+• Story Card edit/delete reconciliation
+• psyche canon reconciliation
+• Undo/timeline rollback
+• multiplayer player-agency protection
+• generated-card key collision protection
+• adaptive context fitting
+• state migration
+• techniques
+• reliability
+• precision
+• resources/recharge
+• training
+• sensory signatures
+• control/collateral evidence
+• synergies
+• diagnostics API
+
+See TEST_REPORT.txt for the current validation summary.
+
+────────
+
+⚡ Why POWERS exists
 
 A good powered story needs more continuity than:
 
+```text
 Character X has Ability Y.
+```
 
-It needs to remember:
+It needs to know:
 
-How certain are we that they have it?
+How certain are we they have it?
 
 What have they actually demonstrated?
 
-What hasn’t been demonstrated yet?
+What have they only claimed?
 
 What does using it cost?
 
-What stops it?
+How reliable and precise is it?
 
-What form does it require?
+Which techniques have they developed?
 
-Where did it come from?
+What resource does it consume?
 
-Is it currently usable?
+Which form does it require?
 
-How has it evolved?
+Is it currently available?
 
-What does the character believe about it?
+What counters it?
 
-What are they afraid of doing with it?
+How has it grown?
 
-What have they promised themselves they won’t do?
+How does the character feel about possessing it?
 
-And which of those things are objective facts versus somebody’s private interpretation?
+Which of those feelings are beliefs rather than objective facts?
 
-That is the problem POWERS is built to solve.
+That is the job of POWERS.
 
-⸻
-
-⚡ Final Principle
-
-Your setting decides what is possible.
-
-Your story decides what is true.
-
-Your characters decide what it means to them.
-
-POWERS remembers the difference.
+> **Your setting decides what is possible.**  
+> **Your story decides what is true.**  
+> **Your characters decide what it means to them.**  
+> **POWERS remembers the difference.**
