@@ -18,6 +18,7 @@ var POWERS = (function () {
 
   var DEFAULTS = {
     enabled: true,
+    configPreset: "custom",            // custom | story | strict | lightweight
     mode: "narrative",                 // narrative | balanced | simulation
     detection: "balanced",             // conservative | balanced | aggressive
     trackPlayer: true,
@@ -81,6 +82,7 @@ var POWERS = (function () {
     contextDetail: "medium",           // low | medium | high
     contextChars: 3400,
     psycheContextChars: 1100,
+    contextSafetyMargin: 240,
     maxContextEntities: 6,
     maxPsycheEntities: 4,
     maxPowersPerEntity: 9,
@@ -99,6 +101,10 @@ var POWERS = (function () {
     maxResourcesPerPower: 8,
     maxTrainingNotesPerPower: 8,
     maxPsychePerType: 8,
+    maxTrackedEntities: 60,
+    staleEntityTurns: 30,
+    pendingAttemptTurns: 2,
+    bootstrapHistoryEntries: 8,
     confirmScore: 2.4,
     probableScore: 1.25,
     failedAttemptPenalty: 0.0,
@@ -110,6 +116,7 @@ var POWERS = (function () {
   };
 
   var CONFIG_ENUMS = {
+    configPreset: { custom: 1, story: 1, strict: 1, lightweight: 1 },
     mode: { narrative: 1, balanced: 1, simulation: 1 },
     detection: { conservative: 1, balanced: 1, aggressive: 1 },
     contextDetail: { low: 1, medium: 1, high: 1 }
@@ -123,6 +130,7 @@ var POWERS = (function () {
     storyCardInterval: [1, 50],
     contextChars: [800, 8000],
     psycheContextChars: [300, 4000],
+    contextSafetyMargin: [0, 1500],
     maxContextEntities: [1, 12],
     maxPsycheEntities: [1, 10],
     maxPowersPerEntity: [1, 18],
@@ -141,6 +149,10 @@ var POWERS = (function () {
     maxResourcesPerPower: [2, 16],
     maxTrainingNotesPerPower: [2, 16],
     maxPsychePerType: [2, 16],
+    maxTrackedEntities: [20, 120],
+    staleEntityTurns: [10, 250],
+    pendingAttemptTurns: [1, 6],
+    bootstrapHistoryEntries: [0, 24],
     emotionMemoryTurns: [1, 100],
     confirmScore: [1, 6],
     probableScore: [0.25, 5],
@@ -150,12 +162,42 @@ var POWERS = (function () {
     claimScore: [0.1, 3]
   };
 
-  var INTEGER_CONFIG_KEYS = {storyCardInterval:1,maxContextEntities:1,maxPsycheEntities:1,maxPowersPerEntity:1,maxPowersStored:1,maxAliases:1,maxEvidencePerPower:1,maxFeatsPerPower:1,maxNotesPerPower:1,maxRecentEvents:1,maxApplicationsPerPower:1,maxTraitsPerPower:1,maxInteractions:1,maxTechniquesPerPower:1,maxVariantsPerPower:1,maxEnvironmentRulesPerPower:1,maxResourcesPerPower:1,maxTrainingNotesPerPower:1,maxPsychePerType:1,emotionMemoryTurns:1};
+  var INTEGER_CONFIG_KEYS = {storyCardInterval:1,contextSafetyMargin:1,maxContextEntities:1,maxPsycheEntities:1,maxPowersPerEntity:1,maxPowersStored:1,maxAliases:1,maxEvidencePerPower:1,maxFeatsPerPower:1,maxNotesPerPower:1,maxRecentEvents:1,maxApplicationsPerPower:1,maxTraitsPerPower:1,maxInteractions:1,maxTechniquesPerPower:1,maxVariantsPerPower:1,maxEnvironmentRulesPerPower:1,maxResourcesPerPower:1,maxTrainingNotesPerPower:1,maxPsychePerType:1,maxTrackedEntities:1,staleEntityTurns:1,pendingAttemptTurns:1,bootstrapHistoryEntries:1,emotionMemoryTurns:1};
+
+  var CONFIG_PRESETS = {
+    custom: {},
+    story: {
+      mode:"narrative", detection:"balanced", contextDetail:"medium", contextChars:3200, psycheContextChars:1000,
+      maxContextEntities:6, maxPsycheEntities:4, autoStoryCards:true, storyCardInterval:6, attemptReferee:true
+    },
+    strict: {
+      mode:"simulation", detection:"conservative", contextDetail:"high", contextChars:4200, psycheContextChars:1300,
+      maxContextEntities:7, maxPsycheEntities:5, strictMechanics:true, highTierGuard:true, strictAttemptMatching:true,
+      attemptReferee:true, autoStoryCards:true, storyCardInterval:5
+    },
+    lightweight: {
+      mode:"narrative", detection:"balanced", contextDetail:"low", contextChars:1600, psycheContextChars:550,
+      maxContextEntities:4, maxPsycheEntities:2, maxPowersPerEntity:6, storyCardInterval:10,
+      trackSignatures:false, trackTraining:false, trackSynergies:false, trackCollateral:false
+    }
+  };
+
+  var CONFIG_KEY_LOOKUP = null;
+  function normalizedConfigKey(value){return lower(String(value||"")).replace(/[^a-z0-9]/g,"");}
+  function canonicalConfigKey(value){
+    var k,n=normalizedConfigKey(value);
+    if(!CONFIG_KEY_LOOKUP){CONFIG_KEY_LOOKUP={};for(k in DEFAULTS)if(hasOwn(DEFAULTS,k))CONFIG_KEY_LOOKUP[normalizedConfigKey(k)]=k;}
+    return CONFIG_KEY_LOOKUP[n]||"";
+  }
+  function applyConfigPreset(cfg,preset){var p=CONFIG_PRESETS[preset]||CONFIG_PRESETS.custom,k;for(k in p)if(hasOwn(p,k))cfg[k]=p[k];cfg.configPreset=preset||"custom";return cfg;}
 
   function normalizeConfig(cfg){
     if(!cfg)return copyDefaults();
     if(cfg.probableScore>=cfg.confirmScore)cfg.probableScore=Math.max(0.25,round2(cfg.confirmScore-0.25));
     if(cfg.maxPowersPerEntity>cfg.maxPowersStored)cfg.maxPowersPerEntity=cfg.maxPowersStored;
+    if(cfg.psycheContextChars>cfg.contextChars)cfg.psycheContextChars=Math.max(300,Math.min(cfg.psycheContextChars,cfg.contextChars));
+    if(cfg.maxPsycheEntities>cfg.maxTrackedEntities)cfg.maxPsycheEntities=cfg.maxTrackedEntities;
+    if(cfg.maxContextEntities>cfg.maxTrackedEntities)cfg.maxContextEntities=cfg.maxTrackedEntities;
     return cfg;
   }
 
@@ -4590,6 +4632,7 @@ var POWERS = (function () {
         interactions: [],
         config: copyDefaults(),
         configSignature: "",
+        configWarnings: [],
         storyCardSeeds: {},
         authoredSources: {},
         processedActions: {},
@@ -4616,6 +4659,7 @@ var POWERS = (function () {
     if (!st.authoredSources) st.authoredSources = {};
     if (!st.processedActions) st.processedActions = {};
     if (!st.actionFingerprints) st.actionFingerprints = {};
+    if (!st.configWarnings) st.configWarnings = [];
     if (!st.stats) st.stats = {sentences:0,powersCreated:0,ontologyCreated:0,feats:0,contradictions:0,rollbacks:0,psycheRecords:0,variants:0};
     if (st.stats.ontologyCreated == null) st.stats.ontologyCreated = 0;
     if (st.stats.rollbacks == null) st.stats.rollbacks = 0;
@@ -4655,32 +4699,42 @@ var POWERS = (function () {
   function loadConfig(st) {
     var card = findConfigCard();
     if (!card) {
-      if (st.configSignature) { st.config = copyDefaults(); st.configSignature = ""; }
+      if (st.configSignature) { st.config = copyDefaults(); st.configSignature = ""; st.configWarnings = []; }
       return;
     }
     var raw = String(card.entry || "");
     if (raw === st.configSignature) return;
-    var cfg = copyDefaults();
-    var lines = raw.replace(/;/g, "\n").split(/\n/);
-    var i, m, key, val, b, n, range, enumSet;
+    var lines = raw.replace(/;/g, "\n").split(/\n/), pairs=[], preset="custom";
+    var i, m, rawKey, key, val, b, n, range, enumSet, cfg, warning;
+    st.configWarnings=[];
     for (i = 0; i < lines.length; i++) {
-      m = lines[i].match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*[:=]\s*(.*?)\s*$/);
+      lines[i]=lines[i].replace(/\s+(?:#|\/\/).*$/," ");
+      m = lines[i].match(/^\s*([A-Za-z][A-Za-z0-9_\- ]*)\s*[:=]\s*(.*?)\s*$/);
       if (!m) continue;
-      key = m[1]; val = m[2];
-      if (!hasOwn(DEFAULTS, key)) continue;
+      rawKey=m[1]; key=canonicalConfigKey(rawKey); val=trim(m[2]);
+      if(!key){st.configWarnings.push("Unknown config option: "+trim(rawKey));continue;}
+      pairs.push({key:key,val:val});
+      if(key==="configPreset"){var pv=lower(val);if(CONFIG_PRESETS[pv])preset=pv;else st.configWarnings.push("Invalid configPreset: "+val);}
+    }
+    cfg=applyConfigPreset(copyDefaults(),preset);
+    for(i=0;i<pairs.length;i++){
+      key=pairs[i].key;val=pairs[i].val;
+      if(key==="configPreset"){if(CONFIG_PRESETS[lower(val)])cfg.configPreset=lower(val);continue;}
       if (BOOL_KEYS[key]) {
-        b = parseBoolean(val); if (b != null) cfg[key] = b;
+        b = parseBoolean(val); if (b != null) cfg[key] = b; else st.configWarnings.push("Invalid boolean for "+key+": "+val);
       } else if (NUM_KEYS[key]) {
         n = parseFloat(val); range = NUM_KEYS[key];
         if (!isNaN(n)) { n=clamp(n, range[0], range[1]); cfg[key]=INTEGER_CONFIG_KEYS[key]?Math.round(n):n; }
+        else st.configWarnings.push("Invalid number for "+key+": "+val);
       } else if (CONFIG_ENUMS[key]) {
         enumSet = CONFIG_ENUMS[key]; val = lower(val);
-        if (enumSet[val]) cfg[key] = val;
+        if (enumSet[val]) cfg[key] = val; else st.configWarnings.push("Invalid value for "+key+": "+pairs[i].val);
       }
     }
     st.config = normalizeConfig(cfg);
     st.configSignature = raw;
-    logDebug("POWERS config loaded", JSON.stringify(cfg));
+    if(st.configWarnings.length&&st.config.debug)logDebug("POWERS config warnings",st.configWarnings.join(" | "));
+    logDebug("POWERS config loaded", JSON.stringify(st.config));
   }
 
   function init() {
@@ -5913,12 +5967,12 @@ var POWERS = (function () {
   }
 
   function pruneState(st) {
-    var maxEntities = 60, i, j, e, p, keys;
+    var maxEntities = st.config.maxTrackedEntities, i, j, e, p, keys;
     // Remove stale entities with no meaningful power data only.
     if (st.entityOrder.length > maxEntities) {
       for (i = st.entityOrder.length - 1; i >= 0 && st.entityOrder.length > maxEntities; i--) {
         e = st.entities[st.entityOrder[i]];
-        if (e && e.powerOrder.length === 0 && !entityHasPsyche(e) && st.turn - e.lastSeen > 30 && e.name !== "You") {
+        if (e && e.powerOrder.length === 0 && !entityHasPsyche(e) && st.turn - e.lastSeen > st.config.staleEntityTurns && e.name !== "You") {
           delete st.entities[e.id]; st.entityOrder.splice(i,1);
         }
       }
@@ -5934,14 +5988,14 @@ var POWERS = (function () {
       e.powerOrder = keys.slice(0,st.config.maxPowersStored);
     }
     // Expire very old unresolved attempts.
-    for (i = st.pendingAttempts.length - 1; i >= 0; i--) if (st.turn - st.pendingAttempts[i].turn > 2) st.pendingAttempts.splice(i,1);
+    for (i = st.pendingAttempts.length - 1; i >= 0; i--) if (st.turn - st.pendingAttempts[i].turn > st.config.pendingAttemptTurns) st.pendingAttempts.splice(i,1);
   }
 
   function bootstrapFromHistory(st) {
     if (st.bootstrapDone) return;
     st.bootstrapDone = true;
     if (typeof history === "undefined" || !history || !history.length) return;
-    var start = Math.max(0, history.length - 8), i, h, src;
+    var keep=st.config.bootstrapHistoryEntries,start=Math.max(0,history.length-keep),i,h,src;if(keep<=0)return;
     for (i = start; i < history.length; i++) {
       h = history[i] || {}; src = (h.type === "continue" || h.type === "start") ? "output" : "history";
       processText(st, h.text || h.rawText || "", src);
@@ -6080,7 +6134,7 @@ var POWERS = (function () {
     if (st.config.mode === "simulation") lines.push("Simulation mode: enforce recorded limits, costs, counters and current suppression strictly; let clever use matter more than unexplained escalation.");
     else if (st.config.mode === "balanced") lines.push("Balanced mode: preserve continuity while allowing creative applications that logically fit an established ability and its known limits.");
     else lines.push("Narrative mode: preserve established continuity while favoring natural prose over visible mechanics or stat language.");
-    if(st.config.attemptReferee&&st.pendingAttempts&&st.pendingAttempts.length){var pa=st.pendingAttempts[st.pendingAttempts.length-1],pe=st.entities[pa.entityId],pp=pe&&pe.powers[pa.powerId],ar;if(pe&&pp&&st.turn-(pa.turn||0)<=2){ar=assessAttemptRecord(st,pe,pp,pa.text,currentContext.slice(-1200));var aw=[];if(ar.blockers.length)aw.push("blockers: "+ar.blockers.join(" / "));if(ar.mechanicWarnings.length)aw.push("mechanic caution: "+ar.mechanicWarnings.join(" / "));if(ar.cautions.length)aw.push("state caution: "+ar.cautions.slice(0,2).join(" / "));if(aw.length)lines.push("Pending attempt referee — "+pe.name+" using "+pp.name+": Do not assume success; "+aw.join("; ")+".");}}
+    if(st.config.attemptReferee&&st.pendingAttempts&&st.pendingAttempts.length){var pa=st.pendingAttempts[st.pendingAttempts.length-1],pe=st.entities[pa.entityId],pp=pe&&pe.powers[pa.powerId],ar;if(pe&&pp&&st.turn-(pa.turn||0)<=st.config.pendingAttemptTurns){ar=assessAttemptRecord(st,pe,pp,pa.text,currentContext.slice(-1200));var aw=[];if(ar.blockers.length)aw.push("blockers: "+ar.blockers.join(" / "));if(ar.mechanicWarnings.length)aw.push("mechanic caution: "+ar.mechanicWarnings.join(" / "));if(ar.cautions.length)aw.push("state caution: "+ar.cautions.slice(0,2).join(" / "));if(aw.length)lines.push("Pending attempt referee — "+pe.name+" using "+pp.name+": Do not assume success; "+aw.join("; ")+".");}}
 
     for (i=0;i<scored.length && i<st.config.maxContextEntities;i++) {
       block=entitySummary(st,scored[i].e,detail); if (!block) continue;
@@ -6157,7 +6211,7 @@ var POWERS = (function () {
     if (!st.config.showMessages || typeof state === "undefined") return;
     var confirmed=0,probable=0,i,j,e,p;
     for(i=0;i<st.entityOrder.length;i++){e=st.entities[st.entityOrder[i]];if(!e)continue;for(j=0;j<e.powerOrder.length;j++){p=e.powers[e.powerOrder[j]];if(!p)continue;if(p.status==="confirmed")confirmed++;else if(p.status==="probable")probable++;}}
-    state.message="Powers: "+confirmed+" confirmed, "+probable+" probable abilities tracked.";
+    state.message="Powers: "+confirmed+" confirmed, "+probable+" probable abilities tracked."+(st.configWarnings&&st.configWarnings.length?" Config warnings: "+st.configWarnings.length+".":"");
   }
 
   function findDefForApi(powerName) {
@@ -6274,7 +6328,7 @@ var POWERS = (function () {
   function apiAssessPower(name,powerName,environment){var st=init(),e,d,p;if(!st)return{exists:false,status:"unknown",availability:"unknown",operational:"unknown",ready:false,conditional:true,blockers:["POWERS state unavailable"],cautions:[],bonuses:[],notes:[]};e=resolveEntityForApi(st,name);if(!e)return{exists:false,status:"unknown",availability:"unknown",operational:"unknown",ready:false,conditional:true,blockers:["entity not found"],cautions:[],bonuses:[],notes:[]};d=findDefForApi(powerName);p=e.powers[d.id];return assessPowerRecord(st,e,p,environment);}
   function apiAssessAttempt(name,powerName,intent,environment){var st=init(),e,d,p;if(!st)return{exists:false,ready:false,conditional:true,blockers:["POWERS state unavailable"],cautions:[],bonuses:[],notes:[],mechanicWarnings:[]};e=resolveEntityForApi(st,name);if(!e)return{exists:false,ready:false,conditional:true,blockers:["entity not found"],cautions:[],bonuses:[],notes:[],mechanicWarnings:[]};d=findDefForApi(powerName);p=e.powers[d.id];if(!p)return{exists:false,ready:false,conditional:true,blockers:["power not established"],cautions:[],bonuses:[],notes:[],mechanicWarnings:[]};return assessAttemptRecord(st,e,p,intent,environment);}
   function apiSetActiveVariant(name,powerName,variantName,reason){var st=init(),e,d,p;if(!st)return null;e=resolveOrCreateEntityForApi(st,name,"character");d=findDefForApi(powerName);p=getOrCreatePower(st,e,d);if(!variantName){clearActiveVariant(st,p,reason||"API returned power to baseline","api");return p;}recordVariant(st,p,String(variantName),reason||("API activated "+variantName),"api",true);return p;}
-  function apiDiagnostics(){var st=init(),out={engine:ENGINE_NAME,turn:0,action:currentActionCount(),entities:0,powers:0,confirmed:0,probable:0,psycheRecords:0,variants:0,operationalNonReady:0};if(!st)return out;out.turn=st.turn;out.entities=st.entityOrder.length;for(var i=0;i<st.entityOrder.length;i++){var e=st.entities[st.entityOrder[i]];if(!e)continue;for(var j=0;j<e.powerOrder.length;j++){var p=e.powers[e.powerOrder[j]];if(!p)continue;out.powers++;if(p.status==="confirmed")out.confirmed++;else if(p.status==="probable")out.probable++;out.variants+=(p.variants||[]).length;if(p.operationalState&&p.operationalState!=="ready")out.operationalNonReady++;}if(e.psyche)for(var k in e.psyche)if(hasOwn(e.psyche,k))out.psycheRecords+=e.psyche[k].length;}return out;}
+  function apiDiagnostics(){var st=init(),out={engine:ENGINE_NAME,turn:0,action:currentActionCount(),entities:0,powers:0,confirmed:0,probable:0,psycheRecords:0,variants:0,operationalNonReady:0,configPreset:"custom",configWarnings:[]};if(!st)return out;out.turn=st.turn;out.entities=st.entityOrder.length;out.configPreset=st.config.configPreset||"custom";out.configWarnings=(st.configWarnings||[]).slice();for(var i=0;i<st.entityOrder.length;i++){var e=st.entities[st.entityOrder[i]];if(!e)continue;for(var j=0;j<e.powerOrder.length;j++){var p=e.powers[e.powerOrder[j]];if(!p)continue;out.powers++;if(p.status==="confirmed")out.confirmed++;else if(p.status==="probable")out.probable++;out.variants+=(p.variants||[]).length;if(p.operationalState&&p.operationalState!=="ready")out.operationalNonReady++;}if(e.psyche)for(var k in e.psyche)if(hasOwn(e.psyche,k))out.psycheRecords+=e.psyche[k].length;}return out;}
 
   function apiSummary(name) {
     var st=init(), e; if(!st) return ""; e=resolveEntityForApi(st,name); if(!e) return "";
@@ -6296,6 +6350,7 @@ var POWERS = (function () {
     var original=stripTrailingPowersLedger(textValue),ledger=buildLedger(st,original.slice(-7000)),maxChars=0,memoryLength=0,room,dynamicKeep;
     if(!ledger)return original;
     try{if(typeof info!=="undefined"&&info){maxChars=Number(info.maxChars||0);memoryLength=Number(info.memoryLength||0);}}catch(e){}
+    if(maxChars>0&&st.config.contextSafetyMargin>0&&maxChars>memoryLength+st.config.contextSafetyMargin+700)maxChars-=st.config.contextSafetyMargin;
     if(maxChars>0&&original.length+ledger.length+2>maxChars){
       room=maxChars-ledger.length-2;if(room<Math.max(400,memoryLength)){ledger=shortText(ledger,Math.max(500,maxChars-Math.max(300,memoryLength)-4));room=maxChars-ledger.length-2;}
       if(room<300)return textValue;
